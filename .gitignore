@@ -1,0 +1,40 @@
+# Secrets / environment
+.env
+.env.*
+!.env.example
+--secret-string
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Node
+node_modules/
+package-lock.json.bak
+
+# CDK
+infra/cdk.out/
+infra/dist/
+infra/outputs.json
+infra/cdk.context.json
+*.d.ts
+*.js.map
+
+# Local data / real research output
+scripts/last_run_output.json
+*.db
+*.sqlite
+*.sqlite3
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,40 @@
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Shared volume so API and worker r ead/write the same SQLite file
+      - sqlite_data:/data
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "sqlite+aiosqlite:////data/sales_agent.db"
+    depends_on:
+      - worker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    volumes:
+      # Same shared volume — worker polls this DB for pending jobs
+      - sqlite_data:/data
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "sqlite+aiosqlite:////data/sales_agent.db"
+      WORKER_POLL_INTERVAL: "5"
+      WORKER_MAX_CONCURRENT: "1"
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:
