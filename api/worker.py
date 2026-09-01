@@ -95,7 +95,6 @@ async def run_job(job_id: str, contact_name: str, company_name: str, website: st
         break
 
     try:
-        loop = asyncio.get_event_loop()
 
         # Steps 1-4: CrewAI flow (contact, company, jobs, news)
         flow = SalesResearchFlow()
@@ -111,13 +110,13 @@ async def run_job(job_id: str, contact_name: str, company_name: str, website: st
 
         # Step 5: opportunities
         print(f"[Worker] Running opportunities...")
-        state = await loop.run_in_executor(None, run_map_opportunities, state)
+        state = await run_map_opportunities(state)
         await _write_progress(job_id, ProgressStep.opportunities,
                                json.loads(state.model_dump_json()))
 
         # Step 6: email drafts
         print(f"[Worker] Running email drafts...")
-        state = await loop.run_in_executor(None, run_draft_emails, state)
+        state = await run_draft_emails(state)
 
         final = json.loads(state.model_dump_json())
         final["status"] = "complete"

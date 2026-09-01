@@ -162,10 +162,10 @@ class SalesResearchFlow(Flow[SalesResearchState]):
 
 # ── Standalone functions (steps 5-6, called by worker) ───────────────────────
 
-def run_map_opportunities(state: SalesResearchState) -> SalesResearchState:
+async def run_map_opportunities(state: SalesResearchState) -> SalesResearchState:
     """Run the opportunity mapper crew. Called directly by the worker after the flow."""
     try:
-        result = build_opportunity_mapper_crew(state).kickoff()
+        result = await build_opportunity_mapper_crew(state).kickoff_async()
         parsed = _parse_json_safe(result.raw, "Opportunities")
         if parsed and isinstance(parsed, list):
             state.opportunities = [
@@ -180,13 +180,13 @@ def run_map_opportunities(state: SalesResearchState) -> SalesResearchState:
     return state
 
 
-def run_draft_emails(state: SalesResearchState) -> SalesResearchState:
+async def run_draft_emails(state: SalesResearchState) -> SalesResearchState:
     """Run the email copy crew. Called directly by the worker after opportunities."""
     if not state.opportunities:
         print("[Flow] ⚠️  Skipping email drafting — no opportunities mapped")
         return state
     try:
-        result = build_email_copy_crew(state).kickoff()
+        result = await build_email_copy_crew(state).kickoff_async()
         parsed = _parse_json_safe(result.raw, "EmailDrafts")
         if parsed and isinstance(parsed, list):
             state.email_drafts = [
@@ -213,8 +213,8 @@ async def run_research(
         "website":      website,
     })
     state = flow.state
-    state = run_map_opportunities(state)
-    state = run_draft_emails(state)
+    state = await run_map_opportunities(state)
+    state = await run_draft_emails(state)
     state.status = "complete"
     state.completed_at = _now()
     return state
